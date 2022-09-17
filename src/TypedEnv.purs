@@ -27,12 +27,12 @@ import Data.Maybe (Maybe(..))
 import Data.Number (fromString) as Number
 import Data.String.CodeUnits (uncons) as String
 import Data.String.Common (toLower)
-import Data.Symbol (class IsSymbol, SProxy(..), reflectSymbol)
+import Data.Symbol (class IsSymbol, reflectSymbol)
 import Foreign.Object (Object, lookup)
 import Prim.Row (class Cons, class Lacks) as Row
 import Prim.RowList (class RowToList, RowList, Cons, Nil)
 import Record (insert) as Record
-import Type.Data.RowList (RLProxy(..))
+import Type.Proxy (Proxy(..))
 import Type.Equality (class TypeEquals, to)
 import Type.RowList (class ListToRow)
 
@@ -121,7 +121,7 @@ instance readEnvImpl ::
   , ListToRow rl r
   , ListToRow el l
   ) => ReadEnv e r where
-    readEnv _ = readEnvFields (RLProxy :: RLProxy el) (RLProxy :: RLProxy rl)
+    readEnv _ = readEnvFields (Proxy :: Proxy el) (Proxy :: Proxy rl)
 
 -- | Transforms a list of environment variable specifications to a record.
 class ReadEnvFields (el :: RowList Type) (rl :: RowList Type) (r :: Row Type) | el -> rl where
@@ -143,10 +143,10 @@ instance readEnvFieldsCons ::
   ) => ReadEnvFields (Cons name (Variable varName ty) elt) (Cons name ty rlt) r where
     readEnvFields _ _ env = Record.insert nameP <$> value <*> tail
       where
-        nameP = SProxy :: SProxy name
-        varName = reflectSymbol (SProxy :: SProxy varName)
+        nameP = Proxy :: Proxy name
+        varName = reflectSymbol (Proxy :: Proxy varName)
         value = readValue varName env
-        tail = readEnvFields (RLProxy :: RLProxy elt) (RLProxy :: RLProxy rlt) env
+        tail = readEnvFields (Proxy :: Proxy elt) (Proxy :: Proxy rlt) env
 
 instance readEnvFieldsNil :: TypeEquals {} (Record row) => ReadEnvFields Nil Nil row where
   readEnvFields _ _ _ = pure $ to {}
